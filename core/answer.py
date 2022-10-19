@@ -1,105 +1,121 @@
 #! /usr/bin/env python3
 
-### @file answer.py
-### @brief Answer の実装ファイル
-### @author Yusuke Matsunaga (松永 裕介)
-###
-### Copyright (C) 2019, 2020 Yusuke Matsunaga
-### All rights reserved.
+"""Answer の実装ファイル
+
+:file: answer.py
+:author: Yusuke Matsunaga (松永 裕介)
+
+Copyright (C) 2019, 2020 Yusuke Matsunaga
+All rights reserved.
+"""
 
 from core.block import Block
 from core.position import Position
 import sys
 
 
-### @brief ADC2019 の解答を表すクラス
-###
-### - 盤面のサイズ
-### - 盤面のラベル(線分番号)
-### - ブロックの位置座標
-### を持つ．
-class Answer :
+class Answer:
+    """ADC2019 の解答を表すクラス
+    - 盤面のサイズ
+    - 盤面のラベル(線分番号)
+    - ブロックの位置座標を持つ．
+    """
 
-    ### @brief 初期化
-    def __init__(self, width, height) :
+    def __init__(self, width, height):
         self.__width = width
         self.__height = height
-        self.__label_array = [ 0 for i in range(width * height) ]
-        self.__block_pos_dict = dict()
+        self.__label_array = [0 for i in range(width * height)]
+        self.__block_pos_dict = {}
 
-    ### @brief 幅を返す．
     @property
-    def width(self) :
+    def width(self):
+        """幅を返す．"""
         return self.__width
 
-    ### @brief 高さを返す．
     @property
-    def height(self) :
+    def height(self):
+        """高さを返す．"""
         return self.__height
 
-    ### @brief ラベルを返す．
-    ###
-    ### 引数は以下のいずれか
-    ### - Position
-    ### - int, int
-    ### どちらも対象の位置座標を表す．
-    def label(self, *args) :
-        if len(args) == 1 and isinstance(args[0], Position) :
+    def label(self, *args):
+        """ラベルを返す．
+        引数は以下のいずれか
+        - Position
+        - int, int
+        どちらも対象の位置座標を表す．
+        """
+        if len(args) == 1 and isinstance(args[0], Position):
             pos = args[0]
-        elif len(args) == 2 and isinstance(args[0], int) and isinstance(args[1], int) :
+        elif len(args) == 2 \
+             and isinstance(args[0], int) \
+             and isinstance(args[1], int):
             pos = Position(args[0], args[1])
-        else :
+        else:
             print('Error in Ansswer.label(args):  args must be Position or (int, int)')
             assert False
         index = self.__pos_to_index(pos)
         return self.__label_array[index]
 
-    ### @brief ブロックの位置を返す．
-    def block_pos(self, block_id) :
+    def block_pos(self, block_id):
+        """ブロックの位置を返す．
+        :param int block_id: ブロック番号
+        """
         assert block_id in self.__block_pos_dict
         return self.__block_pos_dict[block_id]
 
-    ### @brief ラベルを設定する．
-    def set_label(self, pos, label) :
+    def set_label(self, pos, label):
+        """ラベルを設定する．
+        :param Position pos: 位置
+        :param int label: ラベル
+        """
         index = self.__pos_to_index(pos)
         self.__label_array[index] = label
 
-    ### @brief ブロックの位置を設定する．
-    def set_block_pos(self, block_id, pos) :
+    def set_block_pos(self, block_id, pos):
+        """ブロックの位置を設定する．
+        :param int block_id: ブロック番号
+        :param Position pos: 位置
+        """
         self.__check_pos(pos)
         self.__block_pos_dict[block_id] = pos
 
-    ### @brief 内容を出力する．
-    ### @param[in] fout 出力先のファイルオブジェクト(キーワード引数)
-    def print(self, *, fout = sys.stdout) :
-        fout.write('SIZE {}X{}\n'.format(self.width, self.height))
-        for y in range(self.height) :
-            for x in range(self.width) :
-                if x > 0 :
+    def print(self, *, fout=sys.stdout):
+        """内容を出力する．
+        :param FILE fout: 出力先のファイルオブジェクト(キーワード引数)
+        """
+        fout.write(f'SIZE {self.width}X{self.height}\n')
+        for y in range(self.height):
+            for x in range(self.width):
+                if x > 0:
                     fout.write(',')
-                fout.write('{:2d}'.format(self.label(Position(x, y))))
+                label = self.label(Position(x, y))
+                fout.write(f'{label:2d}')
             fout.write('\n')
-        for block_id in sorted(self.__block_pos_dict.keys()) :
+        for block_id in sorted(self.__block_pos_dict.keys()):
             pos = self.block_pos(block_id)
-            fout.write('BLOCK#{} @{}\n'.format(block_id, pos))
+            fout.write(f'BLOCK#{block_id} @{pos}\n')
 
-    ### @brief pos をラベル配列のインデックスに変換する．
-    def __pos_to_index(self, pos) :
+    def __pos_to_index(self, pos):
+        """pos をラベル配列のインデックスに変換する．
+        :param Position pos: 位置
+        """
         x = pos.x
         y = pos.y
         assert 0 <= x and x < self.width
         assert 0 <= y and y < self.height
         return y * self.__width + x
 
-    ### @brief pos が範囲内かチェックする．
-    def __check_pos(self, pos) :
+    def __check_pos(self, pos):
+        """pos が範囲内かチェックする．
+        :param Position pos: 位置
+        """
         x = pos.x
         y = pos.y
         assert 0 <= x and x < self.width
         assert 0 <= y and y < self.height
 
 
-if __name__ == '__main__' :
+if __name__ == '__main__':
 
     ans = Answer(5, 5)
 
