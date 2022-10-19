@@ -1,11 +1,12 @@
 #! /usr/bin/env python3
 
-### @file answerviewwidget.py
-### @brief AnswerViewWidget の実装ファイル
-### @author Yusuke Matsunaga (松永 裕介)
-###
-### Copyright (C) 2019, 2020 Yusuke Matsunaga
-### All rights reserved.
+"""AnswerViewWidget の実装ファイル
+:file: answerviewwidget.py
+:author: Yusuke Matsunaga (松永 裕介)
+
+Copyright (C) 2019, 2020 Yusuke Matsunaga
+All rights reserved.
+"""
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -13,19 +14,17 @@ from PyQt5.QtWidgets import *
 from gui.viewwidget import ViewWidget
 
 
-### @brief 解答を表示するウィジェット
-class AnswerViewWidget(ViewWidget) :
+class AnswerViewWidget(ViewWidget):
+    """解答を表示するウィジェット"""
 
-    ### @brief 初期化
-    def __init__(self, parent = None) :
-
+    def __init__(self, parent=None):
         super(AnswerViewWidget, self).__init__(parent)
 
         # 線分の太さ
-        self.__WireWidth   = 15
+        self.__WireWidth = 15
 
         # 線分用のペン
-        self.__WirePen     = self.new_pen(QColor(100, 100, 100), self.__WireWidth)
+        self.__WirePen = self.new_pen(QColor(100, 100, 100), self.__WireWidth)
 
         # 問題
         self.__Problem = None
@@ -36,31 +35,31 @@ class AnswerViewWidget(ViewWidget) :
         # サイズ関係の初期化
         self.set_size(0, 0)
 
-
-    ### @brief 解答をセットする．
-    ### @param[in] problem 問題
-    ### @param[in] answer 解答
-    def set_answer(self, problem, answer) :
+    def set_answer(self, problem, answer):
+        """解答をセットする．
+        :param Problem problem: 問題
+        :param Answer answer: 解答
+        """
         self.__Problem = problem
         self.__Answer = answer
         self.set_size(answer.width, answer.height)
         self.__terminal_set = set()
-        for block in problem.block_list :
+        for block in problem.block_list:
             block_id = block.block_id
             pos0 = answer.block_pos(block_id)
-            for pos1, label in block.pos_label_list :
+            for pos1, label in block.pos_label_list:
                 pos = pos0 + pos1
-                self.__terminal_set.add( (pos.x, pos.y) )
+                self.__terminal_set.add((pos.x, pos.y))
 
-
-    ### @brief paint イベント
-    ### @param[in] event イベント構造体
-    def paintEvent(self, event) :
+    def paintEvent(self, event):
+        """paint イベント
+        :param Event event: イベント構造体
+        """
         painter = self.draw_init()
 
         # ブロックの描画
         painter.save()
-        for block in self.__Problem.block_list :
+        for block in self.__Problem.block_list:
             block_id = block.block_id
             p0 = self.__Answer.block_pos(block_id)
             pos0 = self.pos_to_local(p0) + self.base_pos
@@ -70,14 +69,14 @@ class AnswerViewWidget(ViewWidget) :
         # 線分の描画
         painter.save()
         painter.setPen(self.__WirePen)
-        for x in range(self.col_num - 1) :
-            for y in range(self.row_num) :
+        for x in range(self.col_num - 1):
+            for y in range(self.row_num):
                 x0, y0 = x,     y
                 x1, y1 = x + 1, y
                 val0 = self.__Answer.label(x0, y0)
                 val1 = self.__Answer.label(x1, y1)
 
-                if val0 != val1 or val0 == 0 :
+                if val0 != val1 or val0 == 0:
                     continue
 
                 pos0 = self.pos_to_local(x0, y0) + self.base_pos
@@ -85,21 +84,22 @@ class AnswerViewWidget(ViewWidget) :
                 cx1 = cx0 + self.grid_size
                 cy = pos0.y() + self.grid_size / 2
 
-                if self.is_terminal(x0, y0) :
-                    cx0 = pos0.x() + self.grid_size - self.inner_margin + self.__WireWidth / 2
-                if self.is_terminal(x1, y1) :
-                    cx1 = pos0.x() + self.grid_size + self.inner_margin - self.__WireWidth / 2
+                dx = self.grid_size - self.inner_margin + self.__WireWidth / 2
+                if self.is_terminal(x0, y0):
+                    cx0 = pos0.x() + dx
+                if self.is_terminal(x1, y1):
+                    cx1 = pos0.x() + dx
 
                 painter.drawLine(cx0, cy, cx1, cy)
 
-        for y in range(self.row_num - 1) :
-            for x in range(self.col_num) :
+        for y in range(self.row_num - 1):
+            for x in range(self.col_num):
                 x0, y0 = x, y
                 x1, y1 = x, y + 1
                 val0 = self.__Answer.label(x0, y0)
                 val1 = self.__Answer.label(x1, y1)
 
-                if val0 != val1 or val0 == 0 :
+                if val0 != val1 or val0 == 0:
                     continue
 
                 pos0 = self.pos_to_local(x0, y0) + self.base_pos
@@ -107,19 +107,20 @@ class AnswerViewWidget(ViewWidget) :
                 cy0 = pos0.y() + self.grid_size / 2
                 cy1 = cy0 + self.grid_size
 
-                if self.is_terminal(x0, y0) :
-                    cy0 = pos0.y() + self.grid_size - self.inner_margin + self.__WireWidth / 2
-                if self.is_terminal(x1, y1) :
-                    cy1 = pos0.y() + self.grid_size + self.inner_margin - self.__WireWidth / 2
+                dy = self.grid_size - self.inner_margin + self.__WireWidth / 2
+                if self.is_terminal(x0, y0):
+                    cy0 = pos0.y() + dy
+                if self.is_terminal(x1, y1):
+                    cy1 = pos0.y() + dy
 
                 painter.drawLine(cx, cy0, cx, cy1)
 
         painter.restore()
 
-
-    ### @brief 端子かどうか調べる．
-    def is_terminal(self, x, y) :
-        if (x, y) in self.__terminal_set :
+    def is_terminal(self, x, y):
+        """端子かどうか調べる．
+        :param int x, y: 座標
+        """
+        if (x, y) in self.__terminal_set:
             return True
-        else :
-            return False
+        return False
